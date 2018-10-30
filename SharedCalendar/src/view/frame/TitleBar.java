@@ -15,6 +15,7 @@ import javax.swing.JPanel;
 
 import view.customized.TransparentLabel;
 import view.customized.TransparentPanel;
+import view.customized.common_button.CommonButton;
 
 public class TitleBar extends JPanel {
 	private static final int BUTTONS_VIEW_WIDTH = 80;
@@ -87,12 +88,12 @@ public class TitleBar extends JPanel {
 		return (JLabel)getFrameMovableView().getComponent(1);
 	}
 	
-	private NavigationButton getMinimizingButton() {
-		return (NavigationButton)((Container)getComponent(1)).getComponent(0);
+	private CommonButton getMinimizingButton() {
+		return (CommonButton)((Container)getComponent(1)).getComponent(0);
 	}
 	
-	private NavigationButton getExitButton() {
-		return (NavigationButton)((Container)getComponent(1)).getComponent(1);
+	private CommonButton getExitButton() {
+		return (CommonButton)((Container)getComponent(1)).getComponent(1);
 	}
 	
 	// 여기 아래부터 뷰 구성
@@ -128,9 +129,11 @@ public class TitleBar extends JPanel {
 		}
 	}
 	
-	private class MinimizingButton extends NavigationButton {
+	class MinimizingButton extends CommonButton {
 		private MinimizingButton() {
-			setChangedFg(getForeground());
+			setNormalFg(Color.BLACK);
+			setEffectedFg(Color.BLACK);
+			setEnableOpposingFgEffect(false);
 		}
 		
 		private MinimizingButton(String text) {
@@ -144,10 +147,14 @@ public class TitleBar extends JPanel {
 		}
 	}
 	
-	private class ExitButton extends NavigationButton {
+	class ExitButton extends CommonButton {
 		private ExitButton() {
+			setNormalBg(Color.WHITE);
 			setPressedBg(new Color(241, 112, 122));
 			setEnteredBg(new Color(232, 17, 35));
+			setEffectTiming(EffectTiming.ENTERED_TIMING);
+			setNormalFg(Color.BLACK);
+			setEnableOpposingFgEffect(true);
 		}
 		
 		private ExitButton(String text) {

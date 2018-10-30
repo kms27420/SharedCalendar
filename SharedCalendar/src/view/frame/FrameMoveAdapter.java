@@ -1,18 +1,18 @@
 package view.frame;
 
 import java.awt.Component;
-import java.awt.Container;
+import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import javax.swing.JFrame;
-
 public class FrameMoveAdapter extends MouseAdapter {
 	private int previousX, previousY;
-	 
+	
+	FrameMoveAdapter() {}
+	
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		JFrame frame = getFrame(e);
+		Window frame = getWindow(e);
 		if(frame == null)	return;
 		int movedX = e.getXOnScreen() - previousX;
 		int movedY = e.getYOnScreen() - previousY;
@@ -27,12 +27,12 @@ public class FrameMoveAdapter extends MouseAdapter {
 		previousY = e.getYOnScreen();
 	}
 	
-	private JFrame getFrame(MouseEvent e) {
-		Component frame = e.getComponent();
-		if(frame==null || !(frame instanceof Container))	return null;
-		while(frame!=null && !(frame instanceof JFrame)) {
-			frame = frame.getParent();
+	private Window getWindow(MouseEvent e) {
+		Component window = e.getComponent();
+		while(window!=null && !(window instanceof Window)) {
+			window = window.getParent();
 		}
-		return (JFrame)frame;
+		if(window==null)	return null;
+		return (Window)window;
 	}
 }

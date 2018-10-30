@@ -7,19 +7,17 @@ import util.ColorUtil;
 import view.customized.ActionCallableLabel;
 
 public class TextButton extends ActionCallableLabel {
-	public static final String PRESSED_TIMING= "pressed_timing";
-	public static final String ENTERED_TIMING = "entered_timing";
-	 
-	private Color originalFg = Color.BLACK;
-	private Color opposingFg = ColorUtil.getOpposingColor(originalFg);
+	private Color normalFg = Color.BLACK;
+	private Color opposingFg = ColorUtil.getOpposingColor(normalFg);
 	private Color effectedFg = opposingFg;
 	
-	private String effectTiming = PRESSED_TIMING;
+	private EffectTiming effectTiming = EffectTiming.PRESSED_TIMING;
 	private boolean enableOpposingFgEffect = true;
 	private boolean enableEffect = true;
 	
 	public TextButton() {
 		addMouseListener(new TextEffector());
+		setOpaque(false);
 	}
 	
 	@Override
@@ -28,11 +26,11 @@ public class TextButton extends ActionCallableLabel {
 		super.removeMouseListener(ml);
 	}
 
-	public void setEffectTiming(String effectTiming) {
+	public void setEffectTiming(EffectTiming effectTiming) {
 		this.effectTiming = effectTiming;
 	}
 	
-	public void setEnableOppositeColorEffect(boolean enableOpposingFgEffect) {
+	public void setEnableOpposingFgEffect(boolean enableOpposingFgEffect) {
 		this.enableOpposingFgEffect = enableOpposingFgEffect;
 	}
 	
@@ -40,28 +38,33 @@ public class TextButton extends ActionCallableLabel {
 		this.enableEffect = enableEffect;
 	}
 	
-	public void setOriginalFg(Color originalFg) {
-		this.originalFg = originalFg;
-		this.opposingFg = ColorUtil.getOpposingColor(this.originalFg);
+	public void setNormalFg(Color normalFg) {
+		setForeground(normalFg);
+		this.normalFg = normalFg;
+		this.opposingFg = ColorUtil.getOpposingColor(this.normalFg);
 	}
 	
 	public void setEffectedFg(Color effectedFg) {
 		this.effectedFg = effectedFg;
 	}
 	
-	boolean isEnableEffect() {
+	public boolean isEnableEffect() {
 		return enableEffect;
 	}
 	
-	String getEffectTiming() {
+	public EffectTiming getEffectTiming() {
 		return effectTiming;
 	}
 	
-	public Color getOriginalFg() {
-		return originalFg;
+	public Color getNormalFg() {
+		return normalFg;
 	}
 	
 	public Color getEffectedFg() {
 		return enableOpposingFgEffect ? opposingFg : effectedFg;
+	}
+	
+	public static enum EffectTiming {
+		PRESSED_TIMING, ENTERED_TIMING;
 	}
 }
