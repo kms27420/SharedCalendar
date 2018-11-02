@@ -5,6 +5,10 @@ public class Schedule {
 	
 	public Schedule() {}
 	
+	public Schedule(int scheduleID) {
+		setScheduleID(scheduleID);
+	}
+	
 	public Schedule(String title, String content, YMD ymd, Time startTime, Time endTime) {
 		setScheduleID(0);
 		setTitle(title);
@@ -19,12 +23,20 @@ public class Schedule {
 		setScheduleID(scheduleID);
 	}
 	
+	public Schedule(int scheduleID, String ownerID, String title, String content, YMD ymd, Time startTime, Time endTime) {
+		this(scheduleID, title, content, ymd, startTime, endTime);
+	}
+	
 	public Schedule(Schedule schedule) {
-		this(schedule.getScheduleID(), schedule.getTitle(), schedule.getContent(), schedule.getYMD(), schedule.getStartTime(), schedule.getEndTime());
+		setSchedule(schedule);
 	}
 	
 	public void setScheduleID(int scheduleID) {
 		set(Type.SCHEDULE_ID, scheduleID);
+	}
+	
+	public void setOwnerID(String ownerID) {
+		set(Type.OWNER_ID, ownerID);
 	}
 	
 	public void setTitle(String title) {
@@ -47,12 +59,21 @@ public class Schedule {
 		set(Type.END_TIME, endTime);
 	}
 	
+	public void setSchedule(Schedule schedule) {
+		for(Type t : Type.values())
+			set(t, schedule.get(t));
+	}
+	
 	private void set(Type type, Object value) {
 		DATA[type.ordinal()] = value;
 	}
 	
 	public int getScheduleID() {
 		return (int)get(Type.SCHEDULE_ID);
+	}
+	
+	public String getOwnerID() {
+		return (String)get(Type.OWNER_ID);
 	}
 	
 	public String getTitle() {
@@ -86,7 +107,7 @@ public class Schedule {
 	
 	public boolean isContentsEquals(Schedule compare) {
 		for(Type t : Type.values())
-			if(!get(t).equals(compare.get(t)))	return false;
+			if(!t.equals(Type.SCHEDULE_ID) && !get(t).equals(compare.get(t)))	return false;
 		return true;
 	}
 	
@@ -103,6 +124,6 @@ public class Schedule {
 	}
 	
 	public static enum Type {
-		SCHEDULE_ID, TITLE, CONTENT, YMD, START_TIME, END_TIME;
+		SCHEDULE_ID, OWNER_ID, TITLE, CONTENT, YMD, START_TIME, END_TIME;
 	}
 }

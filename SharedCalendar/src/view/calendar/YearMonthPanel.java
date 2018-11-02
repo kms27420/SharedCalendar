@@ -16,17 +16,16 @@ import com.mommoo.flat.layout.linear.constraints.LinearSpace;
 
 import calendar.MonthInEnglish;
 import data.YMD;
-import listener.ymd.YMDSelectAdapter;
-import listener.ymd.YMDSelectListener;
+import listener.view.ymd.YMDSelectAdapter;
+import listener.view.ymd.YMDSelectListener;
 import util.ColorUtil;
 import util.FontUtil;
 import util.WindowShower;
 import util.WindowShower.SubViewType;
-import view.YMDView;
+import view.abv.YMDView;
 import view.calendar.MonthMoveButton.Direction;
 import view.customized.TransparentPanel;
 import view.customized.text_button.TextButton;
-import view.popup.YearMonthSelectPanel;
 
 public class YearMonthPanel extends TransparentPanel implements ActionListener, YMDView {
 	private YMDSelectListener ymdSelectListener = new YMDSelectAdapter();
@@ -44,14 +43,12 @@ public class YearMonthPanel extends TransparentPanel implements ActionListener, 
 	
 	public void setYMDSelectListener(YMDSelectListener l) {
 		this.ymdSelectListener = l;
-		yearMonthSelectPanel.setYMDSelectListener(l);
 	}
 	
-	private YearMonthSelectPanel yearMonthSelectPanel = new YearMonthSelectPanel();
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() instanceof CentralButton)
-			WindowShower.INSTANCE.showSubWindow(yearMonthSelectPanel, SubViewType.YMD_INPUT);
+			WindowShower.INSTANCE.showSubWindow(SubViewType.YMD_SELECT);
 		else if(e.getSource() instanceof YearMoveButton)
 			ymdSelectListener.onYMDSelect(((YearMoveButton)e.getSource()).DIRECTION==Direction.LEFT?-1:1, 0);
 		else return;

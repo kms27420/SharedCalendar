@@ -9,13 +9,9 @@ import com.mommoo.flat.layout.linear.Orientation;
 import com.mommoo.flat.layout.linear.constraints.LinearConstraints;
 import com.mommoo.flat.layout.linear.constraints.LinearSpace;
 
-import listener.ListMenuSelectListener;
-import listener.event.SelectEventListener;
-import listener.event.UpdateEventListener;
+import listener.view.ListMenuSelectListener;
 import util.ColorUtil;
-import view.FriendsView;
-import view.LoginStatusView;
-import view.SchedulesView;
+import view.abv.LoginStatusView;
 
 public class SelectedListViewPanel extends JPanel implements ListMenuSelectListener, LoginStatusView {
 	private MenuType selectedMenu=MenuType.EVENTS;
@@ -28,21 +24,12 @@ public class SelectedListViewPanel extends JPanel implements ListMenuSelectListe
 		((ListMenuSelectPanel)getComponent(0)).setListMenuSelectListener(this);
 	}
 	
-	public SchedulesView getSchedulesView() {
+	public ScheduleListPanel getSchedulesView() {
 		return (ScheduleListPanel)MenuType.EVENTS.VIEW;
 	}
 	
-	public FriendsView getFriendsView() {
+	public FriendListPanel getFriendsView() {
 		return (FriendListPanel)MenuType.FRIENDS.VIEW;
-	}
-	
-	public void setUpdateEventListener(UpdateEventListener l) {
-		((ScheduleListPanel)MenuType.EVENTS.VIEW).setUpdateEventListener(l);
-		((FriendListPanel)MenuType.FRIENDS.VIEW).setUpdateEventListener(l);
-	}
-	
-	public void setSelectEventListener(SelectEventListener l) {
-		((FriendListPanel)MenuType.FRIENDS.VIEW).setSelectEventListener(l);
 	}
 	
 	@Override

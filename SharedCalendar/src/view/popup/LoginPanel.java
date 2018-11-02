@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.JLabel;
 
@@ -13,20 +12,21 @@ import com.mommoo.flat.layout.linear.Orientation;
 import com.mommoo.flat.layout.linear.constraints.LinearConstraints;
 import com.mommoo.flat.layout.linear.constraints.LinearSpace;
 
-import listener.login.LoginAdapter;
-import listener.login.LoginListener;
+import listener.view.login.LoginChangeAdapter;
+import listener.view.login.LoginListener;
 import util.ColorUtil;
 import util.FontUtil;
 import util.ScreenSizeUtil;
 import util.WindowShower.WindowView;
+import view.customized.CommonButtonsView;
+import view.customized.CommonButtonsView.CommonButtonsListener;
 import view.customized.PaddingView;
-import view.customized.RoundRectButton;
 import view.customized.TransparentLabel;
 import view.customized.TransparentPanel;
 import view.customized.TransparentTextField;
 
-public class LoginPanel extends WindowView implements ActionListener {
-	private LoginListener loginEventListener = new LoginAdapter();
+public class LoginPanel extends WindowView implements CommonButtonsListener {
+	private LoginListener loginListener = new LoginChangeAdapter();
 	
 	public LoginPanel() {
 		setOpaque(false);
@@ -37,29 +37,39 @@ public class LoginPanel extends WindowView implements ActionListener {
 	}
 	
 	public void setLoginListener(LoginListener l) {
-		loginEventListener = l;
+		loginListener = l;
+	}
+	
+	@Override
+	protected void showInitedView() {
+		getIDTextField().setText("");
+		getPWTextField().setText("");
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e) {
-		if(!(e.getSource() instanceof JLabel))	return;
-		switch(((JLabel)e.getSource()).getText()) {
-		case "CONFIRM" :
-			loginEventListener.onLogin(getInputedID(), getInputedPassword());
-			break;
-		case "CANCEL" :
-			hideWindowView();
-			break;
-			default : break;
-		}
+	public void onCheckButtonClick(ActionEvent e) {
+		loginListener.onLogin(getInputedID(), getInputedPassword());
+	}
+
+	@Override
+	public void onCancelButtonClick(ActionEvent e) {
+		hideWindowView();
 	}
 	
 	private String getInputedID() {
-		return ((TransparentTextField)((PaddingView)((Container)getComponent(0)).getComponent(1)).getContentPane().getComponent(0)).getText();
+		return getIDTextField().getText();
 	}
 	
 	private String getInputedPassword() {
-		return ((TransparentTextField)((PaddingView)((Container)getComponent(1)).getComponent(1)).getContentPane().getComponent(0)).getText();
+		return getPWTextField().getText();
+	}
+	
+	private TransparentTextField getIDTextField() {
+		return (TransparentTextField)((PaddingView)((Container)getComponent(0)).getComponent(1)).getContentPane().getComponent(0);
+	}
+	
+	private TransparentTextField getPWTextField() {
+		return (TransparentTextField)((PaddingView)((Container)getComponent(1)).getComponent(1)).getContentPane().getComponent(0);
 	}
 	
 	private Container createInputView(String text, boolean isPwMode) {
@@ -82,22 +92,16 @@ public class LoginPanel extends WindowView implements ActionListener {
 	}
 	
 	private Container createButtonsView() {
-		PaddingView bv = new PaddingView();
+		CommonButtonsView bv = new CommonButtonsView();
 		bv.setOpaque(false);
 		bv.setPadding(0.2f, 0.2f, 0.2f, 0.2f);
-		bv.setMargin(0.2f);
-		bv.getContentPane().add(createButton("CONFIRM"));
-		bv.getContentPane().add(createButton("CANCEL"));
+		bv.setMargin(0.1f);
+		bv.setCheckButtonText("CONFIRM");
+		bv.setCancelButtonText("CANCEL");
+		bv.setForeground(ColorUtil.getDarkerColor(ColorUtil.getOrangeColor()));
+		bv.setFont(FontUtil.createDefaultFont(12f));
+		bv.setCommonButtonsListener(this);
 		return bv;
-	}
-	
-	private JLabel createButton(String text) {
-		RoundRectButton b = new RoundRectButton(text);
-		b.addActionListener(this);
-		b.setEnableEffect(true);
-		b.setEffectedFg(ColorUtil.getDarkerColor(ColorUtil.getOrangeColor()));
-		b.setNormalFg(ColorUtil.getOrangeColor());
-		return b;
 	}
 	
 	@Override

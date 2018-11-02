@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.JLabel;
 
@@ -13,22 +12,24 @@ import com.mommoo.flat.layout.linear.Orientation;
 import com.mommoo.flat.layout.linear.constraints.LinearConstraints;
 import com.mommoo.flat.layout.linear.constraints.LinearSpace;
 
-import listener.join.JoinListener;
+import listener.view.join.JoinListener;
 import util.ColorUtil;
 import util.FontUtil;
 import util.ScreenSizeUtil;
 import util.WindowShower;
 import util.WindowShower.SubViewType;
 import util.WindowShower.WindowView;
+import view.customized.CommonButtonsView;
 import view.customized.CommonButtonsView.ButtonsType;
+import view.customized.CommonButtonsView.CommonButtonsListener;
 import view.customized.PaddingView;
-import view.customized.RoundRectButton;
 import view.customized.TransparentLabel;
 import view.customized.TransparentPanel;
 import view.customized.TransparentTextField;
+import view.popup.common.AlertView;
 
-public class JoinPanel extends WindowView implements ActionListener {
-	private JoinListener joinEventListener = (i,p,n)->{};
+public class JoinPanel extends WindowView implements CommonButtonsListener {
+	private JoinListener joinListener = (i,p,n)->{};
 	
 	public JoinPanel() {
 		setOpaque(false);
@@ -41,39 +42,64 @@ public class JoinPanel extends WindowView implements ActionListener {
 	}
 	
 	public void setJoinListener(JoinListener l) {
-		joinEventListener = l;
+		joinListener = l;
+	}
+	
+	@Override
+	protected void showInitedView() {
+		getIDTextField().setText("");
+		getNameTextField().setText("");
+		getPWTextField().setText("");
+		getRePWTextField().setText("");
 	}
 
-	private final AlertView ALERT = new AlertView("패스워드를 다시 확인하여주십시오.", ButtonsType.CHECK_ONLY);
+	
+	
 	@Override
-	public void actionPerformed(ActionEvent e) {
-		if(!(e.getSource() instanceof JLabel))	return;
-		switch(((JLabel)e.getSource()).getText()) {
-		case "CONFIRM" :
-			if(getInputedPassword().equals(getInputedRepassword()))	joinEventListener.onJoin(getInputedID(), getInputedPassword(), getInputedName());
-			else WindowShower.INSTANCE.showSubWindow(ALERT, SubViewType.ALERT);
-			break;
-		case "CANCEL" :
-			hideWindowView();
-			break;
-			default : break;
+	public void onCheckButtonClick(ActionEvent e) {
+		if(getInputedPassword().equals(getInputedRepassword()))	
+			joinListener.onJoin(getInputedID(), getInputedPassword(), getInputedName());
+		else {
+			((AlertView)SubViewType.ALERT.VIEW).setAlert("패스워드를 다시 확인하여주십시오.");
+			WindowShower.INSTANCE.showSubWindow(SubViewType.ALERT);
 		}
+	}
+
+	@Override
+	public void onCancelButtonClick(ActionEvent e) {
+		hideWindowView();
 	}
 	
 	private String getInputedID() {
-		return ((TransparentTextField)((PaddingView)((Container)getComponent(0)).getComponent(1)).getContentPane().getComponent(0)).getText();
+		return getIDTextField().getText();
 	}
 	
 	private String getInputedName() {
-		return ((TransparentTextField)((PaddingView)((Container)getComponent(1)).getComponent(1)).getContentPane().getComponent(0)).getText();
+		return getNameTextField().getText();
 	}
 	
 	private String getInputedPassword() {
-		return ((TransparentTextField)((PaddingView)((Container)getComponent(2)).getComponent(1)).getContentPane().getComponent(0)).getText();
+		return getPWTextField().getText();
 	}
 	
 	private String getInputedRepassword() {
-		return ((TransparentTextField)((PaddingView)((Container)getComponent(3)).getComponent(1)).getContentPane().getComponent(0)).getText();
+		return getRePWTextField().getText();
+	}
+	
+	private TransparentTextField getIDTextField() {
+		return (TransparentTextField)((PaddingView)((Container)getComponent(0)).getComponent(1)).getContentPane().getComponent(0);
+	}
+	
+	private TransparentTextField getNameTextField() {
+		return (TransparentTextField)((PaddingView)((Container)getComponent(1)).getComponent(1)).getContentPane().getComponent(0);
+	}
+	
+	private TransparentTextField getPWTextField() {
+		return (TransparentTextField)((PaddingView)((Container)getComponent(2)).getComponent(1)).getContentPane().getComponent(0);
+	}
+	
+	private TransparentTextField getRePWTextField() {
+		return (TransparentTextField)((PaddingView)((Container)getComponent(3)).getComponent(1)).getContentPane().getComponent(0);
 	}
 	
 	private Container createInputView(String text, boolean isPwMode) {
@@ -96,26 +122,20 @@ public class JoinPanel extends WindowView implements ActionListener {
 	}
 	
 	private Container createButtonsView() {
-		PaddingView bv = new PaddingView();
+		CommonButtonsView bv = new CommonButtonsView(ButtonsType.BOTH);
 		bv.setOpaque(false);
 		bv.setPadding(0.2f, 0.2f, 0.2f, 0.2f);
-		bv.setMargin(0.2f);
-		bv.getContentPane().add(createButton("CONFIRM"));
-		bv.getContentPane().add(createButton("CANCEL"));
+		bv.setMargin(0.1f);
+		bv.setCheckButtonText("CONFIRM");
+		bv.setCancelButtonText("CANCEL");
+		bv.setFont(FontUtil.createDefaultFont(12f));
+		bv.setForeground(ColorUtil.getDarkerColor(ColorUtil.getOrangeColor()));
+		bv.setCommonButtonsListener(this);
 		return bv;
-	}
-	
-	private JLabel createButton(String text) {
-		RoundRectButton b = new RoundRectButton(text);
-		b.addActionListener(this);
-		b.setEnableEffect(true);
-		b.setEffectedFg(ColorUtil.getDarkerColor(ColorUtil.getOrangeColor()));
-		b.setNormalFg(ColorUtil.getOrangeColor());
-		return b;
 	}
 	
 	@Override
 	protected Dimension getWindowSize() {
-		return ScreenSizeUtil.getScaledSize(0.25f, 0.2f);
+		return ScreenSizeUtil.getScaledSize(0.25f, 0.35f);
 	}
 }

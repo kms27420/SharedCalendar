@@ -5,6 +5,10 @@ public class Friend {
 	
 	public Friend() {}
 	
+	public Friend(String id) {
+		this.id = id;
+	}
+	
 	public Friend(String id, String name) {
 		setFriend(id, name);
 	}
@@ -24,5 +28,11 @@ public class Friend {
 	
 	public String getName() {
 		return name;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof Friend))	return false;
+		return ((Friend)obj).id.equals(id);
 	}
 }

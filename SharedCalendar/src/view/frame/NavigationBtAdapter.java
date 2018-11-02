@@ -14,7 +14,6 @@ import util.WindowShower;
 import util.WindowShower.SubViewType;
 import view.frame.TitleBar.ExitButton;
 import view.frame.TitleBar.MinimizingButton;
-import view.popup.ProgramExitPanel;
 
 public class NavigationBtAdapter implements ActionListener {
 	NavigationBtAdapter() {}
@@ -26,7 +25,7 @@ public class NavigationBtAdapter implements ActionListener {
 			if(window instanceof JFrame) {
 				switch(((JFrame)window).getDefaultCloseOperation()) {
 				case JFrame.EXIT_ON_CLOSE :
-					WindowShower.INSTANCE.showSubWindow(new ProgramExitPanel(), SubViewType.PROGRAM_EXIT);
+					WindowShower.INSTANCE.showSubWindow(SubViewType.PROGRAM_EXIT);
 					break;
 				default : window.dispose();
 					break;

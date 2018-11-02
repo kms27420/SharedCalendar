@@ -40,14 +40,12 @@ public class CommonScrollPane extends JPanel {
 	}
 	
 	private int pw, ph, pCompCnt;
-	private boolean isAdded;
 	@Override
 	public void paintComponent(Graphics g) {
-		if(pw!=getWidth()-scrollBarWidth || ph!=getHeight() || pCompCnt!=getContentPane().getComponentCount() || isAdded) {
+		if(pw!=getWidth()-scrollBarWidth || ph!=getHeight() || pCompCnt!=getContentPane().getComponentCount()) {
 			pw = getWidth()-scrollBarWidth;
 			ph = getHeight();
 			pCompCnt = getContentPane().getComponentCount();
-			isAdded = false;
 			updateHeightVariables();
 			updateScrollPaneY();
 			updateScrollBarY();
@@ -104,14 +102,16 @@ public class CommonScrollPane extends JPanel {
 		@Override
 		protected void addImpl(Component comp, Object constraints, int index) {
 			super.addImpl(comp, constraints, index);
-			isAdded = true;
+			revalidate();
+			repaint();
 		}
 		
 		@Override
 		public void paintComponent(Graphics g) {
 			Component[] comps = getComponents();
-			for(int i=0;i<comps.length;i++)	
+			for(int i=0;i<comps.length;i++)
 				comps[i].setBounds(0, scrollPaneY+i*compHeight, pw, compHeight);
+			revalidate();	
 			super.paintComponent(g);
 		}
 	}

@@ -9,17 +9,13 @@ import java.awt.event.ActionListener;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import listener.event.SelectEventListener;
-import listener.join.JoinListener;
-import listener.login.LoginListener;
 import util.ColorUtil;
 import util.FontUtil;
 import util.WindowShower;
 import util.WindowShower.SubViewType;
+import view.abv.LoginStatusView;
 import view.customized.PaddingView;
 import view.customized.RoundRectButton;
-import view.popup.JoinPanel;
-import view.popup.LoginPanel;
 
 public class BottomNaviView extends JPanel implements ActionListener, LoginStatusView {
 	public BottomNaviView() {
@@ -28,38 +24,27 @@ public class BottomNaviView extends JPanel implements ActionListener, LoginStatu
 		add(createMainPane());
 	}
 	
-	public void setJoinListener(JoinListener l) {
-		joinPanel.setJoinListener(l);
-	}
-	
-	public void setLoginListener(LoginListener l) {
-		loginPanel.setLoginListener(l);
-	}
-	
-	public void setSelectEventListener(SelectEventListener l) {
-		
-	}
 	@Override
 	public void showLoginStatus(boolean isLogin) {
 		((JLabel)((PaddingView)getComponent(0)).getContentPane().getComponent(1)).setEnabled(!isLogin);
 		((JLabel)((PaddingView)getComponent(0)).getContentPane().getComponent(2)).setText(isLogin?"LOGOUT":"LOGIN");
 	}
 	
-	private LoginPanel loginPanel = new LoginPanel();
-	private JoinPanel joinPanel = new JoinPanel();
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if(!(e.getSource() instanceof JLabel))	return;
 		switch(((JLabel)e.getSource()).getText()) {
 		case "LOGIN" :
-			WindowShower.INSTANCE.showSubWindow(loginPanel, SubViewType.LOGIN);
+			WindowShower.INSTANCE.showSubWindow(SubViewType.LOGIN);
 			break;
 		case "LOGOUT" :
+			WindowShower.INSTANCE.showSubWindow(SubViewType.LOGOUT);
 			break;
 		case "SEARCH" :
+			WindowShower.INSTANCE.showSubWindow(SubViewType.SEARCH);
 			break;
 		case "JOIN" :
-			WindowShower.INSTANCE.showSubWindow(joinPanel, SubViewType.JOIN);
+			WindowShower.INSTANCE.showSubWindow(SubViewType.JOIN);
 			break;
 		}
 	}

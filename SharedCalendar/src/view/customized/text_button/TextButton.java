@@ -7,7 +7,7 @@ import util.ColorUtil;
 import view.customized.ActionCallableLabel;
 
 public class TextButton extends ActionCallableLabel {
-	private Color normalFg = Color.BLACK;
+	private Color normalFg = ColorUtil.getOrangeColor();
 	private Color opposingFg = ColorUtil.getOpposingColor(normalFg);
 	private Color effectedFg = opposingFg;
 	

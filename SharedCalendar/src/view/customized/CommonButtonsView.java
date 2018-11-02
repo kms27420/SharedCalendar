@@ -1,8 +1,13 @@
 package view.customized;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import util.ColorUtil;
 
 public class CommonButtonsView extends PaddingView {
 	private final RoundRectButton CHECK_BUTTON = new RoundRectButton("CHECK");
@@ -27,6 +32,25 @@ public class CommonButtonsView extends PaddingView {
 	
 	public void setCancelButtonText(String text) {
 		CANCEL_BUTTON.setText(text);
+	}
+	
+	@Override
+	public void setFont(Font font) {
+		super.setFont(font);
+		if(getComponentCount()==0)	return;
+		for(Component comp : getContentPane().getComponents())
+			comp.setFont(font);
+	}
+	
+	@Override
+	public void setForeground(Color fg) {
+		super.setForeground(fg);
+		if(getComponentCount()==0)	return;
+		if(getContentPane().getComponentCount()==0)	return;
+		for(Component comp : getContentPane().getComponents()) {
+			((RoundRectButton)comp).setNormalFg(fg);
+			((RoundRectButton)comp).setEffectedFg(ColorUtil.getDarkerColor(ColorUtil.getOrangeColor()));
+		}
 	}
 	
 	public void setButtonsType(ButtonsType type) {

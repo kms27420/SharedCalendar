@@ -7,148 +7,129 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import controler.MainControler;
+import data.Friend;
 import data.Schedule;
-import data.SharedSchedule;
 import data.Time;
 import data.YMD;
-import util.WindowShower;
-import util.WindowShower.SubViewType;
-import view.MainPanel;
+import listener.DBSuccessListener;
 
 public class InternalDBProcessor implements DBProcessor {
 	private static final String SCHEDULES_PATH = "bin/internal/Schedules.txt";
 	private final List<Schedule> SCHEDULES = new ArrayList<>();
 	private final File DB_FILE = new File(SCHEDULES_PATH);
-	private FileWriter appender, updater;
-	private final MainPanel MAIN_PANEL;
+	private final DBSuccessListener DB_SUCCESS_LISTENER;
 	
-	private boolean isYMDChanged;
-	
-	public InternalDBProcessor(MainPanel mainPanel) {
-		MAIN_PANEL = mainPanel;
+	public InternalDBProcessor(DBSuccessListener dbSuccessListener) {
+		DB_SUCCESS_LISTENER = dbSuccessListener;
+	}
+	@Override
+	public void loadDBData() {
 		Scanner sc = null;
+		List<String[]> tmp = new ArrayList<>();
 		try {
 			sc = new Scanner(DB_FILE);
 			while(sc.hasNextLine()) {
-				SCHEDULES.add(new Schedule(Integer.parseInt(sc.nextLine()), 
-						sc.nextLine(), sc.nextLine(), 
-						new YMD(sc.nextLine()), new Time(sc.nextLine()), new Time(sc.nextLine())));
+				tmp.add(new String[]{sc.nextLine(), "", sc.nextLine(), sc.nextLine(), sc.nextLine(), sc.nextLine(), sc.nextLine()});
 			}
-		} catch(IOException e) {
-			appender = null;
-			updater = null;
-		}
+			DB_SUCCESS_LISTENER.onDataLoadSuccess(tmp.toArray(new String[tmp.size()][]), new String[][]{}, new String[][]{});
+		} catch(IOException e) {e.printStackTrace();}
 		finally {
+			sc.close();
 			sc = null;
-		}
-	}
-	
-	@Override
-	public void onScheduleInsert(Schedule insert) {
-		int scheduleID = SCHEDULES.size()==0 ? 1 : SCHEDULES.get(SCHEDULES.size()-1).getScheduleID()+1;
-		Schedule tmp = new Schedule(insert);
-		tmp.setScheduleID(scheduleID);
-		try {
-			if(appender==null)	appender = new FileWriter(DB_FILE, true);
-			appender.write(tmp.toString());
-			appender.flush();
-			SCHEDULES.add(tmp);
-			if(!insert.getYMD().equals(MainControler.beingShownYMD))	isYMDChanged = true;
-			onSchedulesSelectByYMD(insert.getYMD());
-			WindowShower.INSTANCE.hideSubWindow(SubViewType.SCHEDULE_INSERT);
-		} catch(Exception e) {
-		} finally {
 			tmp = null;
 		}
 	}
-
 	@Override
-	public void onScheduleUpdate(Schedule update) {
-		String str = "";
-		for(Schedule s : SCHEDULES)
-			if(s.equals(update))	str += update.toString();
-			else	str += s.toString();
+	public void insertSchedule(Schedule insert) {
+		int scheduleID = SCHEDULES.size()==0 ? 1 : SCHEDULES.get(SCHEDULES.size()-1).getScheduleID()+1;
+		Schedule tmp = new Schedule(insert);
+		tmp.setScheduleID(scheduleID);
+		FileWriter appender = null;
 		try {
-			if(updater!=null)	updater.close();
-			updater = new FileWriter(DB_FILE, false);
-			updater.write(str);
-			updater.flush();
-			int idx = SCHEDULES.indexOf(update);
-			SCHEDULES.remove(update);
-			SCHEDULES.add(idx, update);
-			if(!update.getYMD().equals(MainControler.beingShownYMD))	isYMDChanged = true;
-			onSchedulesSelectByYMD(update.getYMD());
-			WindowShower.INSTANCE.hideSubWindow(SubViewType.SCHEDULE_UPDATE);
-		} catch(Exception e) {
-			e.printStackTrace();
-		} finally {
-			str = null;
+			appender = new FileWriter(DB_FILE, true);
+			appender.write(tmp.toString());
+			appender.flush();
+			appender.close();
+			DB_SUCCESS_LISTENER.onScheduleInsertSuccess(new String[]{
+					tmp.getScheduleID()+"", tmp.getTitle(), tmp.getContent(), 
+					tmp.getYMD().toString(), tmp.getStartTime().toString(), tmp.getEndTime().toString()
+					});
+		} catch(Exception e) {} 
+		finally {
+			appender = null;
+			tmp = null;
 		}
 	}
-
 	@Override
-	public void onScheduleDelete(Schedule delete) {
-		String str = "";
-		for(Schedule s : SCHEDULES)
-			if(!s.equals(delete))	str += s.toString();
+	public void updateSchedules(Schedule update) {
+		Scanner sc = null;
+		FileWriter updater = null;
+		String input = "";
+		List<Schedule> tmp = new ArrayList<>();
 		try {
-			if(updater!=null)	updater.close();
+			sc = new Scanner(DB_FILE);
+			while(sc.hasNextLine()) {
+				tmp.add(new Schedule(Integer.parseInt(sc.nextLine()), sc.nextLine(), sc.nextLine(), 
+						new YMD(sc.nextLine()), new Time(sc.nextLine()), new Time(sc.nextLine())));
+			}
+			for(Schedule s : tmp)
+				if(s.equals(update))	input += update.toString();
+				else	input += s.toString();
+			
 			updater = new FileWriter(DB_FILE, false);
-			updater.write(str);
+			updater.write(input);
 			updater.flush();
-			SCHEDULES.remove(delete);
-			onSchedulesSelectByYMD(delete.getYMD());
-			WindowShower.INSTANCE.hideSubWindow(SubViewType.SCHEDULE_DELETE);
-		} catch(Exception e) {
-		} finally {
-			str = null;
+			updater.close();
+			DB_SUCCESS_LISTENER.onScheduleUpdateSuccess(new String[]{
+					update.getScheduleID()+"", update.getTitle(), update.getContent(), 
+					update.getYMD().toString(), update.getStartTime().toString(), update.getEndTime().toString()
+					});
+		} catch(IOException e) {e.printStackTrace();}
+		finally {
+			sc.close();
+			sc = null;
+			updater = null;
+			tmp = null;
+			input = null;
 		}
 	}
-
 	@Override
-	public void onSchedulesSelectByYMD(YMD search) {
-		List<Schedule> rv = new ArrayList<>();
-		for(Schedule s : SCHEDULES)
-			if(s.getYMD().equals(search))	rv.add(s);
-		if(isYMDChanged) {
-			MainControler.beingShownYMD = search;
-			MAIN_PANEL.showYMD(search);
-			isYMDChanged = false;
+	public void deleteSchedules(Schedule delete) {
+		Scanner sc = null;
+		FileWriter updater = null;
+		String input = "";
+		List<Schedule> tmp = new ArrayList<>();
+		try {
+			sc = new Scanner(DB_FILE);
+			while(sc.hasNextLine()) {
+				tmp.add(new Schedule(Integer.parseInt(sc.nextLine()), sc.nextLine(), sc.nextLine(), 
+						new YMD(sc.nextLine()), new Time(sc.nextLine()), new Time(sc.nextLine())));
+			}
+			for(Schedule s : tmp)
+				if(!s.equals(delete))	input+=s.toString();
+			
+			updater = new FileWriter(DB_FILE, false);
+			updater.write(input);
+			updater.flush();
+			updater.close();
+			DB_SUCCESS_LISTENER.onScheduleDeleteSuccess(delete.getScheduleID()+"");
+		} catch(IOException e) {}
+		finally {
+			sc.close();
+			sc = null;
+			updater = null;
+			input = null;
+			tmp = null;
 		}
-		MAIN_PANEL.showSchedules(rv);
 	}
-
 	@Override
-	public void onSchedulesSelectBySearch(String search) {
-		List<Schedule> rv = new ArrayList<>();
-		char[] compare = search.toCharArray();
-		for(Schedule s : SCHEDULES)
-			if(isInclude(s.getTitle().toCharArray(), compare) || isInclude(s.getContent().toCharArray(), compare))	
-				rv.add(s);
-	}
-	
-	private boolean isInclude(char[] comp, char[] search) {
-		int searchIdx = 0;
-		for(int i=0; i<comp.length; i++) {
-			if(comp[i]==search[searchIdx]) {
-				if(searchIdx==search.length-1)	return true;
-				searchIdx++;
-			} else	searchIdx = 0;
-		}
-		return false;
-	}
-	
+	public void insertFriend(Friend friend) {}
 	@Override
-	public void onShare(SharedSchedule s) {}
+	public void deleteFriend(Friend friend) {}
 	@Override
-	public void onUnshare(SharedSchedule s) {}
+	public void searchFriend(String keyword) {}
 	@Override
-	public void onFriendInsert(String id) {}
+	public void share(int scheduleID, String[] guests) {}
 	@Override
-	public void onFriendDelete(String id) {}
-	@Override
-	public void onSelectFriends() {}
-	@Override
-	public void onSelectFriend(String id) {}
+	public void unshare(int scheduleID, String guestID) {}
 }

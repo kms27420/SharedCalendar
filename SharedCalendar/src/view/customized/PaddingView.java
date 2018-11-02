@@ -1,6 +1,7 @@
 package view.customized;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -40,11 +41,12 @@ public class PaddingView extends JPanel {
 	private Dimension dbottom = new Dimension();
 	private Dimension dright = new Dimension();
 	private int compWidth, compHeight, marginWidth;
+	private boolean isAdded;
 	@Override
 	public void paintComponent(Graphics g) {
 		if(pw!=getWidth()||ph!=getHeight()
 				||ptop!=top||pleft!=left||pbottom!=bottom||pright!=right
-				||pmargin!=margin||pCompCount!=getContentPane().getComponentCount()) {
+				||pmargin!=margin||pCompCount!=getContentPane().getComponentCount() || isAdded) {
 			pw=getWidth();
 			ph=getHeight();
 			ptop=top;
@@ -58,6 +60,7 @@ public class PaddingView extends JPanel {
 			pmargin=margin;
 			marginWidth=(int)(pw*pmargin);
 			pCompCount=getContentPane().getComponentCount();
+			isAdded = false;
 			try{
 				compWidth = (pw-dleft.width-dright.width-marginWidth*(pCompCount-1))/pCompCount;
 			} catch(Exception e) {	compWidth=pw-dleft.width-dright.width;	}
@@ -77,6 +80,13 @@ public class PaddingView extends JPanel {
 		private MarginView() {
 			setLayout(null);
 		}
+		
+		@Override
+		protected void addImpl(Component comp, Object constraints, int index) {
+			super.addImpl(comp, constraints, index);
+			isAdded = true;
+		}
+		
 		private int startX;
 		@Override
 		public void paintComponent(Graphics g) {

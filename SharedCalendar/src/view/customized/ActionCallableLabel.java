@@ -50,6 +50,7 @@ public class ActionCallableLabel extends JLabel {
 	private class ActionCaller extends MouseAdapter {
 		@Override
 		public void mouseClicked(MouseEvent e) {
+			if(!e.getComponent().isEnabled())	return;
 			ActionEvent ae = new ActionEvent(e.getSource(), e.getID(), "Action performed.");
 			ActionListener[] als = getActionListeners();
 			for(ActionListener al : als)	al.actionPerformed(ae);

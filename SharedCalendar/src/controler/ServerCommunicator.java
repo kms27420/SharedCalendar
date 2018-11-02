@@ -3,27 +3,23 @@ package controler;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetAddress;
 import java.net.Socket;
 
 import enumeration.Header;
 import exception.ServerConnectionException;
-import listener.login.LoginListener;
+import listener.view.login.LogoutListener;
 
 public class ServerCommunicator {
 	private Socket socket;
 	private ObjectInputStream input;
 	private ObjectOutputStream output;
 	
-	private ReceiveDataControler receiveDataControler;
-	private LoginListener loginListener;
+	private ReceiveDataControler RECEIVE_DATA_CONTROLER;
+	private LogoutListener logoutListener;
 	
-	public ServerCommunicator(LoginListener loginListener) {
-		this.loginListener = loginListener;
-	}
-	
-	public void setReceiveDataControler(ReceiveDataControler receiveDataControler) {
-		this.receiveDataControler = receiveDataControler;
+	public ServerCommunicator(LogoutListener logoutListener, ReceiveDataControler receiveDataControler) {
+		this.logoutListener = logoutListener;
+		RECEIVE_DATA_CONTROLER = receiveDataControler;
 	}
 	
 	public void readyToCommunication() throws ServerConnectionException {
@@ -53,7 +49,6 @@ public class ServerCommunicator {
 	
 	public synchronized void sendData(Header header, String[] data) throws ServerConnectionException {
 		try {
-			System.out.println("sendData");
 			String[] send = new String[data.length+1];
 			send[0] = header.name();
 			for(int i=0; i<data.length; i++)	send[i+1] = data[i];
@@ -70,9 +65,12 @@ public class ServerCommunicator {
 				Object[] receive = null;
 				while(true) {
 					receive = (Object[])input.readObject();
-					if(receiveDataControler!=null)	receiveDataControler.onReceiveData(receive);
+					if(RECEIVE_DATA_CONTROLER!=null)	RECEIVE_DATA_CONTROLER.onReceiveData(receive);
 				}
-			} catch(Exception e) {loginListener.onLogout();}
+			} catch(Exception e) {
+				e.printStackTrace();
+				logoutListener.onLogout();
+			}
 		}
 	}
 }

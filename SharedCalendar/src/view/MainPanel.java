@@ -12,22 +12,27 @@ import com.mommoo.flat.layout.linear.constraints.LinearSpace;
 import data.Friend;
 import data.Schedule;
 import data.YMD;
-import listener.event.SelectEventListener;
-import listener.event.UpdateEventListener;
-import listener.join.JoinListener;
-import listener.login.LoginListener;
-import listener.ymd.YMDSelectListener;
+import listener.view.ViewEventListener;
 import util.ScreenSizeUtil;
 import util.WindowShower.WindowView;
+import view.abv.MainView;
 import view.calendar.CalendarPanel;
 import view.customized.TransparentPanel;
+import view.list.FriendListPanel;
+import view.list.ScheduleListPanel;
 import view.list.SelectedListViewPanel;
 
-public class MainPanel extends WindowView implements FriendsView, LoginStatusView, SchedulesView, YMDView {
+public class MainPanel extends WindowView implements MainView {
 	public MainPanel() {
 		setLayout(new LinearLayout(Orientation.HORIZONTAL, 0));
 		add(createLeftView(), new LinearConstraints(3, LinearSpace.MATCH_PARENT));
 		add(new SelectedListViewPanel(), new LinearConstraints(1, LinearSpace.MATCH_PARENT));
+	}
+	
+	@Override
+	public void showLoginStatus(boolean isLogin) {
+		((BottomNaviView)((Container)getComponent(0)).getComponent(1)).showLoginStatus(isLogin);
+		((SelectedListViewPanel)getComponent(1)).showLoginStatus(isLogin);
 	}
 	
 	@Override
@@ -41,60 +46,32 @@ public class MainPanel extends WindowView implements FriendsView, LoginStatusVie
 	}
 
 	@Override
-	public void showLoginStatus(boolean isLogin) {
-		((BottomNaviView)((Container)getComponent(0)).getComponent(1)).showLoginStatus(isLogin);
-		((SelectedListViewPanel)getComponent(1)).showLoginStatus(isLogin);
-	}
-
-	@Override
 	public void showFriends(List<Friend> friends) {
 		getFriendsView().showFriends(friends);
 	}
 
-	private YMDView getYMDView() {
+	private CalendarPanel getYMDView() {
 		return (CalendarPanel)((Container)getComponent(0)).getComponent(0);
 	}
 	
-	private SchedulesView getSchedulesView() {
+	private ScheduleListPanel getSchedulesView() {
 		return ((SelectedListViewPanel)getComponent(1)).getSchedulesView();
 	}
 	
-	private FriendsView getFriendsView() {
+	private FriendListPanel getFriendsView() {
 		return ((SelectedListViewPanel)getComponent(1)).getFriendsView();
 	}
 	
-	private Container getSchedulesSearchView() {
-		return null;
-	}
-	
-	private Container getFriendSearchView() {
-		return null;
-	}
-	
-	public void setYMDSelectListener(YMDSelectListener l) {
-		((CalendarPanel)((Container)getComponent(0)).getComponent(0)).setYMDSelectListener(l);
-	}
-	
-	public void setUpdateEventListener(UpdateEventListener l) {
-		((SelectedListViewPanel)getComponent(1)).setUpdateEventListener(l);
-	}
-	
-	public void setSelectEventListener(SelectEventListener l) {
-		((SelectedListViewPanel)getComponent(1)).setSelectEventListener(l);
-	}
-	
-	public void setLoginListener(LoginListener l) {
-		((BottomNaviView)((Container)getComponent(0)).getComponent(1)).setLoginListener(l);
-	}
-	
-	public void setJoinListener(JoinListener l) {
-		((BottomNaviView)((Container)getComponent(0)).getComponent(1)).setJoinListener(l);
+	public void setViewEventListener(ViewEventListener l) {
+		getYMDView().setYMDSelectListener(l);
+		getSchedulesView().setScheduleSelectListener(l);
+		getSchedulesView().setUnsharedFriendSearchListener(l);
 	}
 	
 	private Container createLeftView() {
 		TransparentPanel lv = new TransparentPanel();
 		lv.setLayout(new LinearLayout(Orientation.VERTICAL, 0));
-		lv.add(new CalendarPanel(), new LinearConstraints(3, LinearSpace.MATCH_PARENT));
+		lv.add(new CalendarPanel(), new LinearConstraints(4, LinearSpace.MATCH_PARENT));
 		lv.add(new BottomNaviView(), new LinearConstraints(1, LinearSpace.MATCH_PARENT));
 		return lv;
 	}

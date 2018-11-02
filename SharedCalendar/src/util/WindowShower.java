@@ -14,16 +14,30 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
+import view.customized.CommonButtonsView.ButtonsType;
 import view.frame.CustomDialog;
 import view.frame.CustomFrame;
 import view.frame.CustomWindow.LocationType;
+import view.popup.FriendDeletePanel;
+import view.popup.FriendSearchPanel;
+import view.popup.JoinPanel;
+import view.popup.LoginPanel;
+import view.popup.ProgramExitPanel;
+import view.popup.YMDSelectPanel;
+import view.popup.common.AlertView;
+import view.popup.schedule.ScheduleDeletePanel;
+import view.popup.schedule.ScheduleDetailView;
+import view.popup.schedule.ScheduleInsertPanel;
+import view.popup.schedule.ScheduleSearchPanel;
+import view.popup.schedule.ScheduleSharePanel;
+import view.popup.schedule.ScheduleUnsharePanel;
+import view.popup.schedule.ScheduleUpdatePanel;
 
 public class WindowShower {
 	public static final WindowShower INSTANCE = new WindowShower();
@@ -62,19 +76,20 @@ public class WindowShower {
 		if (MAIN_WINDOW.isVisible()) {
 			MAIN_WINDOW.getContentPane().revalidate();
 			MAIN_WINDOW.getContentPane().repaint();
-		} else	MAIN_WINDOW.setVisible(true);
-		
+		} else {
+			SwingUtilities.invokeLater(()->{
+				MAIN_WINDOW.setVisible(true);
+			});
+		}
 	}
 	
-	private Map<SubViewType, WindowView> SUB_VIEW_MAP = new HashMap<>();
 	/**
 	 * Show the view filled in sub window
 	 * 
 	 * @param view  View to show
 	 */
-	public void showSubWindow(WindowView view, SubViewType type) {
-		switch(type) {
-		case ALERT :
+	public void showSubWindow(SubViewType type) {
+		SwingUtilities.invokeLater(()->{
 			new CustomDialog() {
 				{
 					setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -84,40 +99,18 @@ public class WindowShower {
 					getContentPane().setBackground(getTitleBar().getBackground());
 					setResizable(false);
 					getContentPane().removeAll();
-					getContentPane().add(view);
-					setContentPaneSize(view.getWindowSize());
+					getContentPane().add(type.VIEW);
+					setContentPaneSize(type.VIEW.getWindowSize());
 					setLocation(LocationType.CENTER);
+					((JPanel)getSuperContentPane()).setBorder(null);
 					setVisible(true);
 				}
 			};
-			break;
-		default :
-			if(SUB_VIEW_MAP.containsKey(type))	SUB_VIEW_MAP.get(type).getWindow().setVisible(true);
-			else {
-				SUB_VIEW_MAP.put(type, view);
-				new CustomDialog() {
-					{
-						setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-						setTitleBarExist(true);
-						getTitleBar().setExistOfButtonsView(false);
-						getTitleBar().setBackground(new Color(64,64,64));
-						getContentPane().setBackground(getTitleBar().getBackground());
-						setResizable(false);
-						getContentPane().removeAll();
-						getContentPane().add(view);
-						setContentPaneSize(view.getWindowSize());
-						setLocation(LocationType.CENTER);
-						setVisible(true);
-					}
-				};
-			}
-			break;
-		}
+		});
 	}
 	
 	public void hideSubWindow(SubViewType type) {
-		if(!SUB_VIEW_MAP.containsKey(type)) return;
-		SUB_VIEW_MAP.get(type).hideWindowView();
+		type.VIEW.hideWindowView();
 	}
 	
 	private void displayTrayIcon() {
@@ -168,12 +161,18 @@ public class WindowShower {
 	}
 	
 	public static enum SubViewType {
-		JOIN, LOGIN, LOGOUT,
-		YMD_INPUT, SEARCH,
-		SCHEDULE_DETAIL, SCHEDULE_INSERT, SCHEDULE_UPDATE, SCHEDULE_DELETE,
-		FRIEND_INSERT, FRIEND_DELETE,
-		SHARE, UNSHARE,
-		PROGRAM_EXIT,
-		ALERT;
+		JOIN(new JoinPanel()), LOGIN(new LoginPanel()), LOGOUT(new AlertView("정말 로그아웃 하시겠습니까?", ButtonsType.BOTH)),
+		YMD_SELECT(new YMDSelectPanel()), SEARCH(new ScheduleSearchPanel()),
+		SCHEDULE_DETAIL(new ScheduleDetailView()), SCHEDULE_INSERT(new ScheduleInsertPanel()), 
+		SCHEDULE_UPDATE(new ScheduleUpdatePanel()), SCHEDULE_DELETE(new ScheduleDeletePanel()),
+		FRIEND_INSERT(new FriendSearchPanel()), FRIEND_DELETE(new FriendDeletePanel()),
+		SHARE(new ScheduleSharePanel()), UNSHARE(new ScheduleUnsharePanel()),
+		PROGRAM_EXIT(new ProgramExitPanel()),
+		ALERT(new AlertView(ButtonsType.CHECK_ONLY));
+		
+		public final WindowView VIEW;
+		private SubViewType(WindowView view) {
+			VIEW = view;
+		}
 	}
 }

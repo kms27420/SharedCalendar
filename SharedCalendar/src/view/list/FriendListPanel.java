@@ -14,45 +14,31 @@ import com.mommoo.flat.layout.linear.constraints.LinearConstraints;
 import com.mommoo.flat.layout.linear.constraints.LinearSpace;
 
 import data.Friend;
-import listener.event.SelectEventListener;
-import listener.event.UpdateEventListener;
 import util.ColorUtil;
 import util.FontUtil;
 import util.WindowShower;
 import util.WindowShower.SubViewType;
-import view.FriendsView;
+import view.abv.FriendsView;
 import view.customized.ActionCallablePanel;
+import view.customized.CommonButtonsView;
 import view.customized.CommonButtonsView.ButtonsType;
 import view.customized.CommonScrollPane;
 import view.customized.PaddingView;
 import view.customized.RoundRectButton;
 import view.customized.TransparentPanel;
 import view.customized.UnderlineLabel;
-import view.popup.AlertView;
-import view.popup.FriendSearchPanel;
+import view.popup.FriendDeletePanel;
 
 public class FriendListPanel extends TransparentPanel implements FriendsView, ActionListener {
-	private List<Friend> friends;
-	
 	public FriendListPanel() {
 		setLayout(new LinearLayout(Orientation.VERTICAL, 0));
 		add(new CommonScrollPane(), new LinearConstraints(2, LinearSpace.MATCH_PARENT));
-		add(new PaddingView(), new LinearConstraints(1, LinearSpace.MATCH_PARENT));
-	}
-	
-	public void setUpdateEventListener(UpdateEventListener l) {
-		deleteButtonView.setAlertCheckListener(()->l.onFriendDelete(friends.get(clickedIdx).getID()));
-		friendSearchPanel.setUpdateEventListener(l);
-	}
-	
-	public void setSelectEventListener(SelectEventListener l) {
-		friendSearchPanel.setSelectEventListener(l);
+		add(createButtonsView(), new LinearConstraints(1, LinearSpace.MATCH_PARENT));
 	}
 	
 	@Override
 	public void showFriends(List<Friend> friends) {
 		clickedIdx = -1;
-		this.friends = friends;
 		((CommonScrollPane)getComponent(0)).getContentPane().removeAll();
 		for(Friend f : friends)
 			((CommonScrollPane)getComponent(0)).getContentPane().add(new FriendView(f.getID(), f.getName()));
@@ -81,19 +67,28 @@ public class FriendListPanel extends TransparentPanel implements FriendsView, Ac
 			}
 	}
 	
-	private AlertView deleteButtonView = new AlertView(ButtonsType.BOTH);
 	private void onDeleteButtonClick() {
-		deleteButtonView.setAlert("정말 '" + friends.get(clickedIdx) + "' 님을 삭제하시겠습니까?");
-		WindowShower.INSTANCE.showSubWindow(deleteButtonView, SubViewType.FRIEND_DELETE);
+		((FriendDeletePanel)SubViewType.FRIEND_DELETE.VIEW).setFriendIdx(clickedIdx);
+		((FriendDeletePanel)SubViewType.FRIEND_DELETE.VIEW).setAlert("정말 '" + getFriendView(clickedIdx).getText() + "' 님을 삭제하시겠습니까?");
+		WindowShower.INSTANCE.showSubWindow(SubViewType.FRIEND_DELETE);
 	}
 	
-	private FriendSearchPanel friendSearchPanel = new FriendSearchPanel();
 	private void onAddButtonClick() {
-		WindowShower.INSTANCE.showSubWindow(friendSearchPanel, SubViewType.FRIEND_INSERT);
+		WindowShower.INSTANCE.showSubWindow(SubViewType.FRIEND_INSERT);
 	}
 	
 	private FriendView getFriendView(int idx) {
 		return (FriendView)((CommonScrollPane)getComponent(0)).getContentPane().getComponent(idx);
+	}
+	
+	private CommonButtonsView createButtonsView() {
+		CommonButtonsView bv = new CommonButtonsView(ButtonsType.CHECK_ONLY);
+		bv.setOpaque(false);
+		bv.setFont(FontUtil.createDefaultFont(12f));
+		bv.setCheckButtonText("ADD AS A FRIEND");
+		bv.setPadding(0.35f, 0.15f, 0.35f, 0.15f);
+		((RoundRectButton)bv.getContentPane().getComponent(0)).addActionListener(this);
+		return bv;
 	}
 	
 	private class FriendView extends ActionCallablePanel {
@@ -107,6 +102,12 @@ public class FriendListPanel extends TransparentPanel implements FriendsView, Ac
 		private void showClickedState(boolean isClicked) {
 			setOpaque(isClicked);
 			((DeleteButton)((PaddingView)getComponent(1)).getContentPane().getComponent(0)).setVisible(isClicked);
+			revalidate();
+			repaint();
+		}
+		
+		private String getText() {
+			return ((JLabel)getComponent(0)).getText();
 		}
 		
 		private JLabel createUnderlineLabel(String id, String name) {

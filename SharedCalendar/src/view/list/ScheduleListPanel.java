@@ -14,30 +14,31 @@ import com.mommoo.flat.layout.linear.Orientation;
 import com.mommoo.flat.layout.linear.constraints.LinearConstraints;
 import com.mommoo.flat.layout.linear.constraints.LinearSpace;
 
-import calendar.CalendarUtil;
 import data.Schedule;
-import listener.event.UpdateEventListener;
+import listener.view.friend.UnsharedFriendSearchListener;
+import listener.view.schedule.ScheduleSelectListener;
+import model.DataStore;
 import util.ColorUtil;
 import util.FontUtil;
 import util.WindowShower;
 import util.WindowShower.SubViewType;
-import view.LoginStatusView;
-import view.SchedulesView;
+import view.abv.LoginStatusView;
+import view.abv.SchedulesView;
 import view.customized.ActionCallablePanel;
-import view.customized.CommonButtonsView.ButtonsType;
 import view.customized.CommonScrollPane;
 import view.customized.PaddingView;
 import view.customized.RoundRectButton;
 import view.customized.TransparentLabel;
 import view.customized.TransparentPanel;
 import view.customized.UnderlineLabel;
-import view.popup.AlertView;
-import view.popup.ScheduleDetailView;
-import view.popup.ScheduleInsertPanel;
-import view.popup.ScheduleUpdatePanel;
+import view.popup.schedule.ScheduleDeletePanel;
+import view.popup.schedule.ScheduleInsertPanel;
+import view.popup.schedule.ScheduleUpdatePanel;
 
 public class ScheduleListPanel extends TransparentPanel implements SchedulesView, ActionListener, LoginStatusView {
 	private List<Schedule> schedules;
+	private ScheduleSelectListener scheduleSelectListener = i->{};
+	private UnsharedFriendSearchListener unsharedFriendSearchListener = i->{};
 	
 	public ScheduleListPanel() {
 		setLayout(new LinearLayout(Orientation.VERTICAL, 0));
@@ -45,10 +46,12 @@ public class ScheduleListPanel extends TransparentPanel implements SchedulesView
 		add(new ButtonsView(), new LinearConstraints(1, LinearSpace.MATCH_PARENT));
 	}
 	
-	public void setUpdateEventListener(UpdateEventListener l) {
-		scheduleInsertPanel.setUpdateEventListener(l);
-		scheduleUpdatePanel.setUdateEventListener(l);
-		scheduleDeletePanel.setAlertCheckListener(()->l.onScheduleDelete(schedules.get(clickedIdx)));
+	public void setScheduleSelectListener(ScheduleSelectListener l) {
+		this.scheduleSelectListener = l;
+	}
+	
+	public void setUnsharedFriendSearchListener(UnsharedFriendSearchListener l) {
+		unsharedFriendSearchListener = l;
 	}
 	
 	@Override
@@ -75,7 +78,7 @@ public class ScheduleListPanel extends TransparentPanel implements SchedulesView
 		else if(e.getSource()==((PaddingView)getComponent(1)).getContentPane().getComponent(1))	
 			onInsertButtonClick();
 		else if(e.getSource()==((PaddingView)getComponent(1)).getContentPane().getComponent(2))	
-			;
+			onShareButtonClick();
 		else	return;
 	}
 	
@@ -85,14 +88,11 @@ public class ScheduleListPanel extends TransparentPanel implements SchedulesView
 	}
 
 	private int clickedIdx=-1;
-	private ScheduleDetailView detailView = new ScheduleDetailView();
 	private void onScheduleViewClick(ScheduleView clickedView) {
 		for(int i=0; i<((CommonScrollPane)getComponent(0)).getContentPane().getComponentCount(); i++) {
 			if(clickedView==getScheduleView(i)) {
-				if(clickedIdx==i) {
-					detailView.showScheduleDetail(schedules.get(i));
-					WindowShower.INSTANCE.showSubWindow(detailView, SubViewType.SCHEDULE_DETAIL);
-				} else {
+				if(clickedIdx==i)	scheduleSelectListener.onScheduleSelect(clickedIdx);
+				else {
 					if(clickedIdx>=0)	getScheduleView(clickedIdx).showClickedState(false);
 					getScheduleView(i).showClickedState(true);
 					revalidate();
@@ -104,23 +104,26 @@ public class ScheduleListPanel extends TransparentPanel implements SchedulesView
 		}
 	}
 	
-	private AlertView scheduleDeletePanel = new AlertView(ButtonsType.BOTH);
 	private void onDeleteButtonClick() {
-		scheduleDeletePanel.setAlert("정말 '" + schedules.get(clickedIdx).getTitle()+"' 일정을 삭제하시겠습니까?");
-		WindowShower.INSTANCE.showSubWindow(scheduleDeletePanel, SubViewType.SCHEDULE_DELETE);
+		((ScheduleDeletePanel)SubViewType.SCHEDULE_DELETE.VIEW).setScheduleIdx(clickedIdx);
+		((ScheduleDeletePanel)SubViewType.SCHEDULE_DELETE.VIEW).setAlert("정말 '" + getScheduleView(clickedIdx).getTitle()+"' 일정을 삭제하시겠습니까?");
+		WindowShower.INSTANCE.showSubWindow(SubViewType.SCHEDULE_DELETE);
 	}
 	
-	private ScheduleUpdatePanel scheduleUpdatePanel = new ScheduleUpdatePanel();
 	private void onUpdateButtonClick() {
 		if(clickedIdx<0)	return;
-		scheduleUpdatePanel.showInitedView(schedules.get(clickedIdx));
-		WindowShower.INSTANCE.showSubWindow(scheduleUpdatePanel, SubViewType.SCHEDULE_UPDATE);
+		((ScheduleUpdatePanel)SubViewType.SCHEDULE_UPDATE.VIEW).showInitedView(clickedIdx, schedules.get(clickedIdx));
+		WindowShower.INSTANCE.showSubWindow(SubViewType.SCHEDULE_UPDATE);
 	}
 	
-	private ScheduleInsertPanel scheduleInsertPanel = new ScheduleInsertPanel();
 	private void onInsertButtonClick() {
-		scheduleInsertPanel.showInitedView(CalendarUtil.getToday());
-		WindowShower.INSTANCE.showSubWindow(scheduleInsertPanel, SubViewType.SCHEDULE_INSERT);
+		((ScheduleInsertPanel)SubViewType.SCHEDULE_INSERT.VIEW).showInitedView(DataStore.getBeingShownYMD());
+		WindowShower.INSTANCE.showSubWindow(SubViewType.SCHEDULE_INSERT);
+	}
+	
+	private void onShareButtonClick() {
+		if(clickedIdx<0)	return;
+		unsharedFriendSearchListener.onUnsharedFriendSearch(clickedIdx);
 	}
 	
 	private ScheduleView getScheduleView(int idx) {
@@ -139,6 +142,10 @@ public class ScheduleListPanel extends TransparentPanel implements SchedulesView
 		private void showClickedState(boolean isClicked) {
 			setOpaque(isClicked);
 			((DeleteButton)((PaddingView)getComponent(2)).getContentPane().getComponent(0)).setVisible(isClicked);
+		}
+		
+		private String getTitle() {
+			return ((JLabel)getComponent(1)).getText();
 		}
 		
 		private JLabel createTimeView(String time) {
